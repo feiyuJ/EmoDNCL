@@ -4,7 +4,6 @@ A PyTorch implementation of DNCL model for EEG-based emotion recognition.
 
 ## Features
 - Self-distillation learning framework
-- Self-organized graph neural networks
 - Two-stage training (pre-training + fine-tuning)
 - Support for SEED and SEEDIV datasets
 - Sensitive channel-aware data augmentation
@@ -15,7 +14,6 @@ A PyTorch implementation of DNCL model for EEG-based emotion recognition.
 - **SOGNN**: Self-organized graph construction and convolution
 - **Two-stage training**: Unsupervised pre-training followed by supervised fine-tuning
 
-## Installation
 
 ### Requirements
 - Python 3.7+
@@ -56,9 +54,9 @@ The model uses NINA (Neighbor-based Intelligent Neural Augmentation):
 - `--aug1_n`: Number of channels to augment for aug1 (default: 9)
 - `--aug2_n`: Number of channels to augment for aug2 (default: 6)
 - `--aug1_p`: Replacement ratio for aug1 (default: 0.5 = 50% original + 50% neighbor value)
-- `--aug2_p`: Replacement ratio for aug2 (default: 0.5 = 50% original + 50% neighbor value)
+- `--aug2_p`: Replacement ratio for aug2 (default: 0.1 = 90% original + 10% neighbor value)
 - `--aug1_r`: Time segment ratio for aug1 (default: 0.3)
-- `--aug2_r`: Time segment ratio for aug2 (default: 0.3)
+- `--aug2_r`: Time segment ratio for aug2 (default: 0.1)
 
 ### NINA Augmentation Strategy
 
@@ -76,40 +74,16 @@ python main.py \
     --selected_dataset SEEDIV \
     --epochs 400 \
     --gpu_id 0 \
-    --batch_size 16 \
-    --aug1_p 0.5 \
-    --aug1_r 0.3 \
-    --aug2_p 0.5 \
-    --aug2_r 0.3
 ```
 
-### Fine-tuning (Supervised)
+### Fine-tuning
 ```bash
 python main.py \
     --training_mode FT \
     --selected_dataset SEEDIV \
     --epochs 300 \
-    --gpu_id 0 \
-    --batch_size 16 \
-    --aug1_p 0.5 \
-    --aug1_r 0.3 \
-    --aug2_p 0.5 \
-    --aug2_r 0.3
-```
 
-### Custom NINA Augmentation Parameters
-```bash
-python main.py \
-    --training_mode self_supervised \
-    --selected_dataset SEEDIV \
-    --epochs 400 \
-    --gpu_id 0 \
-    --aug1_n 12 \
-    --aug2_n 8 \
-    --aug1_p 0.7 \
-    --aug1_r 0.4 \
-    --aug2_p 0.6 \
-    --aug2_r 0.5
+
 ```
 
 ## Arguments
@@ -124,9 +98,9 @@ python main.py \
 | `--aug1_n` | Channels to augment for aug1 | 9 | int |
 | `--aug2_n` | Channels to augment for aug2 | 6 | int |
 | `--aug1_p` | Replacement ratio for aug1 | 0.5 | float (0-1) |
-| `--aug2_p` | Replacement ratio for aug2 | 0.5 | float (0-1) |
+| `--aug2_p` | Replacement ratio for aug2 | 0.1 | float (0-1) |
 | `--aug1_r` | Time ratio for aug1 | 0.3 | float (0-1) |
-| `--aug2_r` | Time ratio for aug2 | 0.3 | float (0-1) |
+| `--aug2_r` | Time ratio for aug2 | 0.1 | float (0-1) |
 | `--experiment_description` | Experiment name | DNCL_Experiment | string |
 
 ## Training Settings
@@ -135,13 +109,15 @@ python main.py \
 - Pre-training: 400 epochs
 - Fine-tuning: 300 epochs
 - Learning rate: 0.00001
+- Weight Decay: 0.000001
 - Optimizer: Adam
 - Batch size: 16
 
 ### SEED Dataset
-- Pre-training: 300 epochs
+- Pre-training: 100 epochs
 - Fine-tuning: 300 epochs
 - Learning rate: 0.00001
+- Weight Decay: 0.000001
 - Optimizer: Adam
 - Batch size: 16
 
