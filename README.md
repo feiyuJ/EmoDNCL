@@ -1,4 +1,4 @@
-# DNCL: Deep Neural Contrastive Learning for EEG Emotion Recognition
+# EmoDNCL: Dual-stream Negative-sample-free Contrastive Learning with Neurophysiological Augmentation for EEG Emotion Recognition
 
 A PyTorch implementation of DNCL model for EEG-based emotion recognition.
 
@@ -168,16 +168,7 @@ GITHUB/
 
 ## Citation
 
-If you use this code in your research, please cite:
 
-```bibtex
-@article{your_paper,
-  title={Your Paper Title},
-  author={Your Name},
-  journal={Journal Name},
-  year={2024}
-}
-```
 
 ## License
 
