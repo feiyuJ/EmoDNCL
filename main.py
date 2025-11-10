@@ -90,37 +90,72 @@ elif args.selected_dataset == 'SEEDIV':
 
 Network = SOGNN
 
-def train(model, train_loader, crit, optimizer, sensitive_channels):
-    """Training function"""
-    model.train()
+def train(model, train_loader, crit, optimizer,sensitive_channels):
+    model.train()  
     loss_all = 0
 
+
     num_batches = len(train_loader)
-    batch_size = 16
-    all_matrices = torch.zeros(num_batches, batch_size, 62, 62).to(device)
+    batch_size = 16  
+    all_matrices = torch.zeros(num_batches, batch_size, 62, 62).to(device) 
 
-    for i, data in enumerate(train_loader):
+    for i, data in enumerate(train_loader):  
+  # trainloader(16*72,5*64)
         data = data.to(device)
-        data_in, _ = to_dense_batch(data.x, data.batch)
+        data_in, _ = to_dense_batch(data.x, data.batch)  
 
-        # Data augmentation using NINA method
-        aug1 = NINA(data_in.clone(), n=args.aug1_n, p=args.aug1_p, t=args.aug1_r, random_seed=None)
-        aug2 = NINA(data_in.clone(), n=args.aug2_n, p=args.aug2_p, t=args.aug2_r, random_seed=None)
+        if train_model == 'self_supervised':
+            aug1 = NINA(data_in.clone(), n=args.aug1_n, p=args.aug1_p, t=args.aug1_r, random_seed=None)
+            aug2 = NINA(data_in.clone(), n=args.aug2_n, p=args.aug2_p, t=args.aug2_r, random_seed=None)
 
-        optimizer.zero_grad()
+            optimizer.zero_grad()  
 
-        # Forward pass
-        output, features_s1, features_s2, features_t2, matx = model(aug1, aug2)
-        loss = output['loss']
-        loss.backward()
-        loss_all += data.num_graphs * loss.item()
-        optimizer.step()
+            output,features_s1,features_s2,features_t2,matx = model(aug1, aug2) 
+            # t0 = time.time()
+            loss = output['loss']
+            loss.backward()  # 反向传播
+            loss_all += data.num_graphs * loss.item()
+            optimizer.step()  # 更新梯度
 
-        # Store adjacency matrix
-        all_matrices[i] = matx.detach().cpu()
+            with torch.no_grad():
+                if loss < updateloss :
+                    model._update_teacher_network()  #
+                    all_matrices[i] = matx
+                model.update_center(features_s1,features_s2,features_t2)  
 
-    avg_mat_epoch = all_matrices.mean(dim=0)
-    return loss_all / len(train_loader), avg_mat_epoch
+        elif train_model == 'FT':
+
+            for param in model.teacher.parameters():
+                param.requires_grad = True
+
+            optimizer.zero_grad()
+            label = torch.argmax(data.y.view(-1,classes), axis=1)
+            label = label.to(device) #, dtype=torch.long) 
+            # data_in_aug = random_aug(data_in)
+            # output, _ = model(data_in_aug, data_in_aug)  
+            output, pred, logits,matx = model(data_in, data_in)  
+            loss = crit(output, label)
+            loss.backward()  
+            loss_all += data.num_graphs * loss.item()
+            optimizer.step() 
+            # dino_model.update_teacher()  
+        else:
+            optimizer.zero_grad()
+            label = torch.argmax(data.y.view(-1,classes), axis=1)
+            label = label.to(device) #, dtype=torch.long) #, dtype=torch.int64)
+            output, pred, logits,matx = model(data_in, data_in)  
+            loss = crit(output, label)
+            loss.backward()  
+            loss_all += data.num_graphs * loss.item()
+            optimizer.step()  
+            # dino_model.update_teacher() 
+
+
+    if train_model == 'self_supervised':
+        avg_mat_epoch = torch.mean(all_matrices.view(-1, 62, 62), dim=0)  
+        return loss_all / len(train_dataset), avg_mat_epoch
+    else :
+        return loss_all / len(train_dataset)
 
 def evaluate(model, loader, classes, device):
     """Evaluation function"""
