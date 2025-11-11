@@ -33,7 +33,7 @@ def NINA(eegdata, n, p, t, random_seed=None):
                - p = 1: 用邻域的最大值或最小值替换。
                - p = 0.5: 替换为原始值与最大值或最小值的平均值。
     t (float): 时间维度上参与增强的比例 (0 <= t <= 1)。
-    random_seed (int, optional): 随机种子，确保结果可复现。
+    random_seed (int, optional): 随机种子，确保结果可复现，一般不使用。
     
     返回:
     torch.Tensor: 增强后的 EEG 信号。
